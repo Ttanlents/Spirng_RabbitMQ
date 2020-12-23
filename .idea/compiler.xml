@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="direct_RabbitMQ" />
+        <module name="fanout_RabbitMQ" />
+        <module name="header_RabbitMQ" />
+        <module name="simple_RabbitMQ" />
+        <module name="topic_RabbitMQ" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

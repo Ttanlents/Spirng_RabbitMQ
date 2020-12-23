@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/rabbit
+       http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+    <!--加载配置文件-->
+    <context:property-placeholder location="classpath:rabbitmq.properties"/>
+
+    <!-- 定义rabbitmq connectionFactory -->
+    <rabbit:connection-factory id="connectionFactory" host="${rabbitmq.host}"
+                               port="${rabbitmq.port}"
+                               username="${rabbitmq.username}"
+                               password="${rabbitmq.password}"
+                               virtual-host="${rabbitmq.virtual-host}"/>
+    <!--定义管理交换机、队列-->
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!--
+        定义一个队列
+        name: 队列的名称
+        durable: 是否持久化(默认true)
+        auto-delete: 是否自动删除(默认false)
+        exclusive: 是否独占(默认false)
+    -->
+   <!--这开始定义交换机和队列-->
+    <!-- 定义4个队列 -->
+    <rabbit:queue id="spring_topic_queue1" name="spring_topic_queue1" />
+    <rabbit:queue id="spring_topic_queue2" name="spring_topic_queue2" />
+    <rabbit:queue id="spring_topic_queue3" name="spring_topic_queue3" />
+    <rabbit:queue id="spring_topic_queue4" name="spring_topic_queue4" />
+
+    <!-- topic工作模式,将队列绑定到交换机 -->
+    <rabbit:topic-exchange id="spring_topic_exchange" name="spring_topic_exchange" >
+        <rabbit:bindings>
+            <rabbit:binding pattern="red.#.green" queue="spring_topic_queue1"/>
+            <rabbit:binding pattern="red.green.*" queue="spring_topic_queue2"/>
+            <rabbit:binding pattern="#.green" queue="spring_topic_queue3"/>
+            <rabbit:binding pattern="*.green.#" queue="spring_topic_queue4"/>
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+    <!--定义rabbitTemplate对象操作可以在代码中方便发送消息-->
+    <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory"/>
+
+    <!-- 注册监听器 -->
+    <bean id="springWorkListener_topic" class="com.yjf.SpringWorkListener_topic"/>
+    <!-- 绑定到监听器容器 -->
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <!-- 引用监听器并指定监听的队列,监听多个队列以逗号分隔 -->
+        <rabbit:listener ref="springWorkListener_topic" queue-names="spring_topic_queue1"/>
+        <rabbit:listener ref="springWorkListener_topic" queue-names="spring_topic_queue2"/>
+        <rabbit:listener ref="springWorkListener_topic" queue-names="spring_topic_queue3"/>
+        <rabbit:listener ref="springWorkListener_topic" queue-names="spring_topic_queue4"/>
+
+    </rabbit:listener-container>
+</beans>

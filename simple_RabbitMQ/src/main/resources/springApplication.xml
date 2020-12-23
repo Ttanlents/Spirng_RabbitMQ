@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/rabbit
+       http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+    <!--加载配置文件-->
+    <context:property-placeholder location="classpath:rabbitmq.properties"/>
+
+    <!-- 定义rabbitmq connectionFactory -->
+    <rabbit:connection-factory id="connectionFactory" host="${rabbitmq.host}"
+                               port="${rabbitmq.port}"
+                               username="${rabbitmq.username}"
+                               password="${rabbitmq.password}"
+                               virtual-host="${rabbitmq.virtual-host}"/>
+    <!--定义管理交换机、队列-->
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!--
+        定义一个队列
+        name: 队列的名称
+        durable: 是否持久化(默认true)
+        auto-delete: 是否自动删除(默认false)
+        exclusive: 是否独占(默认false)
+    -->
+    <rabbit:queue id="spring_work_queue" name="spring_work_queue" auto-delete="false"
+                  exclusive="false" durable="true"/>
+
+    <!--定义rabbitTemplate对象操作可以在代码中方便发送消息-->
+    <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory"/>
+
+    <!-- 注册监听器 -->
+    <bean id="springWorkListener" class="com.yjf.SpringWorkListener_fanout"/>
+    <!-- 绑定到监听器容器 -->
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <!-- 引用监听器并指定监听的队列,监听多个队列以逗号分隔 -->
+        <rabbit:listener ref="springWorkListener" queue-names="spring_work_queue"/>
+
+    </rabbit:listener-container>
+</beans>
